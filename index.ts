@@ -4,83 +4,108 @@ import * as echarts from 'echarts';
 var navigateFromCityCardToGraphButtons = document.querySelectorAll(
   '.main-locations-city-cards-div-chevron-right'
 );
-var chartDom = document.querySelectorAll<HTMLElement>(
+
+var navigateBetweenDaysInAirQualityGraph = document.querySelectorAll(
+  '.main-dashboard-title-city-charts-item-days-line-specific'
+);
+
+var chartDom1 = document.querySelectorAll<HTMLElement>(
   '.main-dashboard-title-city-charts-item-content'
 )[0];
-var myChart = echarts.init(chartDom);
+
+var chartDom2 = document.querySelectorAll<HTMLElement>(
+  '.main-dashboard-title-city-charts-item-content'
+)[1];
+
+var chartDom3 = document.querySelectorAll<HTMLElement>(
+  '.main-dashboard-title-city-charts-item-days-content'
+)[0];
+
+var myChart = echarts.init(chartDom1);
+var myChart2 = echarts.init(chartDom2);
+var myChart3 = echarts.init(chartDom3);
+
 for (let i = 0; i < navigateFromCityCardToGraphButtons.length; i++) {
   navigateFromCityCardToGraphButtons[i].addEventListener('click', () => {
     getWeatherInfoAndMakeHourlyTemperatureGraph(i);
+    getWeatherInfoAndMakeMaximumTemperatureGraph(i);
+    getWeatherInfoAndMakeAirQualityGraph(i);
   });
+}
 
-  function getWeatherInfoAndMakeHourlyTemperatureGraph(index: number) {
-    var selectedCity: string;
-    if (index == 0) {
-      selectedCity = 'Thessaloniki';
-    } else if (index == 1) {
-      selectedCity = 'Athens';
-    }
+for (let i = 0; i < navigateBetweenDaysInAirQualityGraph.length; i++) {
+  navigateBetweenDaysInAirQualityGraph[i].addEventListener('click', () => {
+    getWeatherInfoAndMakeAirQualityGraph(i);
+  });
+}
 
-    var date = new Date();
-
-    date.setDate(date.getDate() - 1);
-
-    let url =
-      'https://api.weatherapi.com/v1/history.json?key=c2c6271001c643d6a4390320231007&q=' +
-      selectedCity +
-      '&dt=' +
-      date.toLocaleDateString('en-GB').split('/').reverse().join('-');
-
-    fetch(url, { method: 'GET' })
-      .then((result) => result.json())
-      .then((response) => {
-        console.log(response);
-
-        var dashboardTitle = document.querySelectorAll(
-          '.main-dashboard-title-text'
-        )[0];
-        dashboardTitle.innerHTML =
-          response['location']['name'] +
-          ', ' +
-          response['location']['region'] +
-          ', ' +
-          response['location']['tz_id'];
-
-        // Calculating hours to put them in xAxis
-        var xAxisValues: string[] = [];
-        response['forecast']['forecastday']['0']['hour'].forEach((hour) => {
-          var hourTemp: any = Object.values(hour)['1'];
-          var specificHour = hourTemp.split(' ')[1];
-          xAxisValues.push(specificHour);
-        });
-
-        // Calculating hourly temperatoures to put them in yAxis
-        var yAxisValues: string[] = [];
-        response['forecast']['forecastday']['0']['hour'].forEach((hour) => {
-          yAxisValues.push(hour.temp_c);
-        });
-
-        var option;
-        option = {
-          xAxis: {
-            type: 'category',
-            data: xAxisValues,
-          },
-          yAxis: {
-            type: 'value',
-          },
-          series: [
-            {
-              data: yAxisValues,
-              type: 'line',
-            },
-          ],
-        };
-
-        option && myChart.setOption(option, true);
-      })
-      .catch((error) => console.log(error));
+function getWeatherInfoAndMakeHourlyTemperatureGraph(index: number) {
+  var selectedCity: string;
+  if (index == 0) {
+    selectedCity = 'Thessaloniki';
+  } else if (index == 1) {
+    selectedCity = 'Athens';
   }
+
+  var date = new Date();
+
+  date.setDate(date.getDate() - 1);
+
+  let url =
+    'https://api.weatherapi.com/v1/history.json?key=c2c6271001c643d6a4390320231007&q=' +
+    selectedCity +
+    '&dt=' +
+    date.toLocaleDateString('en-GB').split('/').reverse().join('-');
+
+  fetch(url, { method: 'GET' })
+    .then((result) => result.json())
+    .then((response) => {
+      console.log(response);
+
+      var dashboardTitle = document.querySelectorAll(
+        '.main-dashboard-title-text'
+      )[0];
+      dashboardTitle.innerHTML =
+        response['location']['name'] +
+        ', ' +
+        response['location']['region'] +
+        ', ' +
+        response['location']['tz_id'];
+
+      // Calculating hours to put them in xAxis
+      var xAxisValues: string[] = [];
+      response['forecast']['forecastday']['0']['hour'].forEach((hour) => {
+        var hourTemp: any = Object.values(hour)['1'];
+        var specificHour = hourTemp.split(' ')[1];
+        xAxisValues.push(specificHour);
+      });
+
+      // Calculating hourly temperatoures to put them in yAxis
+      var yAxisValues: string[] = [];
+      response['forecast']['forecastday']['0']['hour'].forEach((hour) => {
+        yAxisValues.push(hour.temp_c);
+      });
+
+      var option;
+      option = {
+        xAxis: {
+          type: 'category',
+          data: xAxisValues,
+        },
+        yAxis: {
+          type: 'value',
+        },
+        series: [
+          {
+            data: yAxisValues,
+            type: 'line',
+          },
+        ],
+      };
+
+      option && myChart.setOption(option, true);
+    })
+    .catch((error) => console.log(error));
 }
 
 function getWeatherInfoAndMakeMaximumTemperatureGraph(index: number) {
@@ -106,11 +131,9 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(index: number) {
     .then((response) => {
       console.log(response);
 
-      var chartDom = document.getElementById('main');
-      var myChart = echarts.init(chartDom);
-      var option;
+      var option2;
 
-      option = {
+      option2 = {
         series: [
           {
             type: 'gauge',
@@ -125,14 +148,14 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(index: number) {
             },
             progress: {
               show: true,
-              width: 30,
+              width: 15,
             },
             pointer: {
               show: false,
             },
             axisLine: {
               lineStyle: {
-                width: 30,
+                width: 10,
               },
             },
             axisTick: {
@@ -175,7 +198,8 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(index: number) {
             },
             data: [
               {
-                value: 20,
+                value:
+                  response['forecast']['forecastday']['0']['day']['maxtemp_c'],
               },
             ],
           },
@@ -213,34 +237,111 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(index: number) {
             },
             data: [
               {
-                value: 20,
+                value:
+                  response['forecast']['forecastday']['0']['day']['maxtemp_c'],
               },
             ],
           },
         ],
       };
-      setInterval(function () {
-        const random = +(Math.random() * 60).toFixed(2);
-        myChart.setOption({
-          series: [
+
+      option2 && myChart2.setOption(option2, true);
+    });
+}
+
+function getWeatherInfoAndMakeAirQualityGraph(index: number) {
+  var selectedCity: string;
+  if (index == 0) {
+    selectedCity = 'Thessaloniki';
+  } else if (index == 1) {
+    selectedCity = 'Athens';
+  }
+
+  var date = new Date();
+
+  date.setDate(date.getDate() - 1);
+
+  let url =
+    'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
+    selectedCity +
+    '&days=1&aqi=yes&alerts=no';
+
+  fetch(url, { method: 'GET' })
+    .then((result) => result.json())
+    .then((response) => {
+      console.log(response);
+
+      var option3;
+
+      option3 = {
+        title: {
+          text: 'Basic Radar Chart',
+          textStyle: {
+            fontSize: '12',
+            padding: 20,
+          },
+        },
+        legend: {
+          data: ['Allocated Budget', 'Actual Spending'],
+          textStyle: {
+            fontSize: '8',
+          },
+        },
+        radar: {
+          // shape: 'circle',
+          indicator: [
+            { name: 'co', max: 250 },
+            { name: 'no2', max: 10 },
+            { name: 'o3', max: 250 },
+            { name: 'so2', max: 10 },
+            { name: 'pm2_5', max: 30 },
+            { name: 'pm10', max: 30 },
             {
-              data: [
-                {
-                  value: random,
-                },
-              ],
+              name: 'us-epa-index',
+              max: 10,
             },
             {
-              data: [
-                {
-                  value: random,
-                },
-              ],
+              name: 'gb-defra-index',
+              max: 10,
             },
           ],
-        });
-      }, 2000);
+        },
+        series: [
+          {
+            name: 'Budget vs spending',
+            type: 'radar',
+            data: [
+              {
+                value: [
+                  response['current']['air_quality']['co'],
+                  response['current']['air_quality']['no2'],
+                  response['current']['air_quality']['o3'],
+                  response['current']['air_quality']['so2'],
+                  response['current']['air_quality']['pm2_5'],
+                  response['current']['air_quality']['pm10'],
+                  response['current']['air_quality']['us-epa-index'],
+                  response['current']['air_quality']['gb-defra-index'],
+                ],
+                name: 'Allocated Budget',
+              },
+              {
+                value: [
+                  response['current']['air_quality']['co'],
+                  response['current']['air_quality']['no2'],
+                  response['current']['air_quality']['o3'],
+                  response['current']['air_quality']['so2'],
+                  response['current']['air_quality']['pm2_5'],
+                  response['current']['air_quality']['pm10'],
+                  response['current']['air_quality']['us-epa-index'],
+                  response['current']['air_quality']['gb-defra-index'],
+                ],
+                name: 'Actual Spending',
+              },
+            ],
+          },
+        ],
+      };
 
-      option && myChart.setOption(option, true);
+      option3 && myChart3.setOption(option3);
     });
 }
