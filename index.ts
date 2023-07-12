@@ -3,19 +3,139 @@ import * as echarts from 'echarts';
 
 var cities: string[] = ['Thessaloniki', 'Athens'];
 
+callAPIForInitCards();
+
+document.querySelectorAll(
+  '.main-dashboard-title-charts-top-title-content-left-temperature'
+)[0].innerHTML = '';
+document.querySelectorAll(
+  '.main-dashboard-title-charts-top-title-content-left-details'
+)[0].innerHTML = '';
+document
+  .querySelectorAll(
+    '.main-dashboard-title-charts-top-title-content-right-img'
+  )[0]
+  .setAttribute('src', '');
+
 var searchLocationInput = document.querySelector<HTMLInputElement>(
   '#searchLocationInput'
 );
 
 searchLocationInput.addEventListener('keypress', (event) => {
   if (event.key === 'Enter') {
+    var successRequest: boolean = true;
+
     var searchLocationInputText = searchLocationInput.value;
-    let successRequest = getWeatherInfoAndMakeHourlyTemperatureGraph(
-      searchLocationInputText
-    );
-    if (successRequest) {
-    } else {
-      alert('Wrong location');
+
+    let url =
+      'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
+      searchLocationInputText +
+      '&days=1&aqi=yes&alerts=no';
+
+    fetch(url, { method: 'GET' })
+      .then((result) => result.json())
+      .then((response) => {
+        console.log(response);
+
+        if (!cities.includes(searchLocationInputText)) {
+          cities.push(response['location']['name']);
+          var newDivCard = document.createElement('div');
+          newDivCard.className = 'main-locations-city-cards';
+
+          var newDivImgCard = document.createElement('div');
+          newDivImgCard.className = 'main-locations-city-cards-div-img';
+
+          var newImgCard = document.createElement('img');
+          newImgCard.setAttribute(
+            'src',
+            response['current']['condition']['icon']
+          );
+          newImgCard.style.height = '36px';
+          newImgCard.style.width = '36px';
+
+          newDivImgCard.appendChild(newImgCard);
+
+          var newDivTextCard = document.createElement('div');
+          newDivTextCard.className = 'main-locations-city-cards-text';
+
+          var newDivTextTemperatureCard = document.createElement('div');
+          newDivTextTemperatureCard.className =
+            'main-locations-city-cards-temperature';
+          newDivTextTemperatureCard.innerHTML =
+            Math.ceil(
+              response['forecast']['forecastday']['0']['day']['maxtemp_c']
+            ) +
+            'oC - ' +
+            Math.ceil(
+              response['forecast']['forecastday']['0']['day']['mintemp_c']
+            ) +
+            'oC';
+          var newDivTextDividerCard = document.createElement('div');
+          newDivTextDividerCard.className = 'main-locations-city-cards-divider';
+          newDivTextDividerCard.innerHTML = '|';
+          var newDivTextCityCard = document.createElement('div');
+          newDivTextCityCard.className = 'main-locations-city-cards-city';
+          newDivTextCityCard.innerHTML = response['location']['name'];
+
+          newDivTextCard.appendChild(newDivTextTemperatureCard);
+          newDivTextCard.appendChild(newDivTextDividerCard);
+          newDivTextCard.appendChild(newDivTextCityCard);
+
+          var newDivImgChevronRight = document.createElement('div');
+          newDivImgChevronRight.className =
+            'main-locations-city-cards-div-chevron-right';
+
+          var newImgChevronRight = document.createElement('img');
+          newImgChevronRight.setAttribute(
+            'src',
+            'https://raw.githubusercontent.com/pgiannou/training-Task1/80d2a1527093cecf55fcf6deabf0aba675df2538/chevron-right.svg'
+          );
+          newDivImgChevronRight.appendChild(newImgChevronRight);
+
+          newDivImgChevronRight.addEventListener('click', () => {
+            getWeatherInfoAndMakeHourlyTemperatureGraph(
+              cities[cities.length - 1]
+            );
+            getWeatherInfoAndMakeMaximumTemperatureGraph(
+              cities[cities.length - 1],
+              0
+            );
+            getWeatherInfoAndMakeAirQualityGraph(cities[cities.length - 1]);
+
+            for (let i = 0; i < navigateBetweenDaysInGaugeGraph.length; i++) {
+              navigateBetweenDaysInGaugeGraph[i].addEventListener(
+                'click',
+                () => {
+                  getWeatherInfoAndMakeMaximumTemperatureGraph(
+                    cities[cities.length - 1],
+                    i
+                  );
+                }
+              );
+            }
+          });
+
+          newDivCard.appendChild(newDivImgCard);
+          newDivCard.appendChild(newDivTextCard);
+          newDivCard.appendChild(newDivImgChevronRight);
+
+          var finalDiv = document.querySelectorAll(
+            '.main-locations-city-cards-group'
+          )[0];
+          finalDiv.appendChild(newDivCard);
+        }
+      });
+    getWeatherInfoAndMakeHourlyTemperatureGraph(searchLocationInputText);
+    getWeatherInfoAndMakeMaximumTemperatureGraph(searchLocationInputText, 0);
+    getWeatherInfoAndMakeAirQualityGraph(searchLocationInputText);
+
+    for (let i = 0; i < navigateBetweenDaysInGaugeGraph.length; i++) {
+      navigateBetweenDaysInGaugeGraph[i].addEventListener('click', () => {
+        getWeatherInfoAndMakeMaximumTemperatureGraph(
+          searchLocationInputText,
+          i
+        );
+      });
     }
   }
 });
@@ -46,20 +166,13 @@ var myChart3 = echarts.init(chartDom3);
 
 for (let i = 0; i < navigateFromCityCardToGraphButtons.length; i++) {
   navigateFromCityCardToGraphButtons[i].addEventListener('click', () => {
-    var selectedCity: string;
-    if (i == 0) {
-      selectedCity = cities[0];
-    } else if (i == 1) {
-      selectedCity = cities[1];
-    }
+    getWeatherInfoAndMakeHourlyTemperatureGraph(cities[i]);
+    getWeatherInfoAndMakeMaximumTemperatureGraph(cities[i], 0);
+    getWeatherInfoAndMakeAirQualityGraph(cities[i]);
 
-    getWeatherInfoAndMakeHourlyTemperatureGraph(selectedCity);
-    getWeatherInfoAndMakeMaximumTemperatureGraph(selectedCity, 0);
-    getWeatherInfoAndMakeAirQualityGraph(selectedCity);
-
-    for (let i = 0; i < navigateBetweenDaysInGaugeGraph.length; i++) {
+    for (let j = 0; j < navigateBetweenDaysInGaugeGraph.length; j++) {
       navigateBetweenDaysInGaugeGraph[i].addEventListener('click', () => {
-        getWeatherInfoAndMakeMaximumTemperatureGraph(selectedCity, i);
+        getWeatherInfoAndMakeMaximumTemperatureGraph(cities[i], j);
       });
     }
   });
@@ -72,11 +185,38 @@ var navigateBetweenDaysInGaugeGraphLine =
 
 navigateBetweenDaysInGaugeGraphLine[0].style.visibility = 'hidden';
 
-function getWeatherInfoAndMakeHourlyTemperatureGraph(
-  selectedCity: string
-): boolean {
-  var successRequest: boolean = true;
+function callAPIForInitCards() {
+  for (let i = 0; i < cities.length; i++) {
+    let url =
+      'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
+      cities[i] +
+      '&days=1&aqi=yes&alerts=no';
 
+    fetch(url, { method: 'GET' })
+      .then((result) => result.json())
+      .then((response) => {
+        console.log(response);
+
+        document.querySelectorAll('.main-locations-city-cards-temperature')[
+          i
+        ].innerHTML =
+          Math.ceil(
+            response['forecast']['forecastday']['0']['day']['maxtemp_c']
+          ) +
+          'oC - ' +
+          Math.ceil(
+            response['forecast']['forecastday']['0']['day']['mintemp_c']
+          ) +
+          'oC';
+
+        document.querySelectorAll('.main-locations-city-cards-city')[
+          i
+        ].innerHTML = response['location']['name'];
+      });
+  }
+}
+
+function getWeatherInfoAndMakeHourlyTemperatureGraph(selectedCity: string) {
   var date = new Date();
 
   date.setDate(date.getDate() - 1);
@@ -90,82 +230,7 @@ function getWeatherInfoAndMakeHourlyTemperatureGraph(
   fetch(url, { method: 'GET' })
     .then((result) => result.json())
     .then((response) => {
-      console.log(response);
-
-      if (!cities.includes(selectedCity)) {
-        cities.push(response['location']['name']);
-        var newDivCard = document.createElement('div');
-        newDivCard.className = 'main-locations-city-cards';
-
-        var newDivImgCard = document.createElement('div');
-        newDivImgCard.className = 'main-locations-city-cards-div-img';
-
-        var newImgCard = document.createElement('img');
-        newImgCard.setAttribute(
-          'src',
-          response['forecast']['forecastday']['0']['day']['condition']['icon']
-        );
-        newImgCard.style.height = '36px';
-        newImgCard.style.width = '36px';
-
-        newDivImgCard.appendChild(newImgCard);
-
-        var newDivTextCard = document.createElement('div');
-        newDivTextCard.className = 'main-locations-city-cards-text';
-
-        var newDivTextTemperatureCard = document.createElement('div');
-        newDivTextTemperatureCard.className =
-          'main-locations-city-cards-temperature';
-        newDivTextTemperatureCard.innerHTML =
-          Math.ceil(
-            response['forecast']['forecastday']['0']['day']['maxtemp_c']
-          ) +
-          'oC' +
-          Math.ceil(
-            response['forecast']['forecastday']['0']['day']['mintemp_c']
-          ) +
-          'oC';
-        var newDivTextDividerCard = document.createElement('div');
-        newDivTextDividerCard.className = 'main-locations-city-cards-divider';
-        newDivTextDividerCard.innerHTML = '|';
-        var newDivTextCityCard = document.createElement('div');
-        newDivTextCityCard.className = 'main-locations-city-cards-city';
-        newDivTextCityCard.innerHTML = response['location']['name'];
-
-        newDivTextCard.appendChild(newDivTextTemperatureCard);
-        newDivTextCard.appendChild(newDivTextDividerCard);
-        newDivTextCard.appendChild(newDivTextCityCard);
-
-        var newDivImgChevronRight = document.createElement('div');
-        newDivImgChevronRight.className =
-          'main-locations-city-cards-div-chevron-right';
-
-        var newImgChevronRight = document.createElement('img');
-        newImgChevronRight.setAttribute(
-          'src',
-          'https://raw.githubusercontent.com/pgiannou/training-Task1/80d2a1527093cecf55fcf6deabf0aba675df2538/chevron-right.svg'
-        );
-        newDivImgChevronRight.appendChild(newImgChevronRight);
-
-        newDivCard.appendChild(newDivImgCard);
-        newDivCard.appendChild(newDivTextCard);
-        newDivCard.appendChild(newDivImgChevronRight);
-
-        var finalDiv = document.querySelectorAll(
-          '.main-locations-city-cards-group'
-        )[0];
-        finalDiv.appendChild(newDivCard);
-      }
-
-      var dashboardTitle = document.querySelectorAll(
-        '.main-dashboard-title-text'
-      )[0];
-      dashboardTitle.innerHTML =
-        response['location']['name'] +
-        ', ' +
-        response['location']['region'] +
-        ', ' +
-        response['location']['tz_id'];
+      //console.log(response);
 
       // Calculating hours to put them in xAxis
       var xAxisValues: string[] = [];
@@ -199,13 +264,11 @@ function getWeatherInfoAndMakeHourlyTemperatureGraph(
       };
 
       option && myChart.setOption(option, true);
-      successRequest = true;
     })
     .catch((error) => {
-      successRequest = false;
+      alert('Wrong location');
     });
-
-  return successRequest;
+  //return true;
 }
 
 function getWeatherInfoAndMakeMaximumTemperatureGraph(
@@ -215,11 +278,11 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(
   navigateBetweenDaysInGaugeGraphLine[0].style.visibility = 'visible';
 
   if (selectedDay == 0) {
-    navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '2px solid blue';
-    navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
-    navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
+      navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
+      navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '2px solid blue';
+      navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
 
-    var date = new Date();
+      var date = new Date();
 
     date.setDate(date.getDate() - 1);
 
@@ -232,7 +295,7 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(
     fetch(url, { method: 'GET' })
       .then((result) => result.json())
       .then((response) => {
-        console.log(response);
+        //console.log(response);
 
         var option2;
 
@@ -294,15 +357,18 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(
 
         option2 && myChart2.setOption(option2, true);
       });
-  } else {
-    if (selectedDay == 1) {
-      navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
-      navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '2px solid blue';
-      navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
-    } else if (selectedDay == 2) {
-      navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
-      navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '2px solid blue';
-      navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
+    } else {
+      if (selectedDay == 1) {
+        navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '2px solid blue';
+        navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
+        navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
+    
+        
+      } else if (selectedDay == 2) {
+        navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
+        navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '2px solid blue';
+        navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
+      }
     }
     let url =
       'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
@@ -312,7 +378,45 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(
     fetch(url, { method: 'GET' })
       .then((result) => result.json())
       .then((response) => {
-        //console.log(response);
+        console.log(response);
+
+        var dashboardTitle = document.querySelectorAll(
+          '.main-dashboard-title-text'
+        )[0];
+        dashboardTitle.innerHTML =
+          response['location']['name'] +
+          ', ' +
+          response['location']['region'] +
+          ', ' +
+          response['location']['tz_id'];
+
+        var dateNow = new Date();
+        document.querySelectorAll(
+          '.main-dashboard-title-charts-top-title-content-left-temperature'
+        )[0].innerHTML =
+          response['forecast']['forecastday']['0']['hour'][dateNow.getHours()][
+            'temp_c'
+          ];
+        document.querySelectorAll(
+          '.main-dashboard-title-charts-top-title-content-left-details'
+        )[0].innerHTML =
+          'Day ' +
+          Math.ceil(
+            response['forecast']['forecastday']['0']['day']['maxtemp_c']
+          ) +
+          'oC - Night ' +
+          Math.ceil(
+            response['forecast']['forecastday']['0']['day']['mintemp_c']
+          ) +
+          'oC';
+        document
+          .querySelectorAll(
+            '.main-dashboard-title-charts-top-title-content-right-img'
+          )[0]
+          .setAttribute(
+            'src',
+            response['forecast']['forecastday']['0']['day']['condition']['icon']
+          );
 
         var option2;
 
