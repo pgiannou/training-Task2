@@ -1,11 +1,30 @@
 import './style.scss';
 import * as echarts from 'echarts';
 
+var cities: string[] = ['Thessaloniki', 'Athens'];
+
+var searchLocationInput = document.querySelector<HTMLInputElement>(
+  '#searchLocationInput'
+);
+
+searchLocationInput.addEventListener('keypress', (event) => {
+  if (event.key === 'Enter') {
+    var searchLocationInputText = searchLocationInput.value;
+    let successRequest = getWeatherInfoAndMakeHourlyTemperatureGraph(
+      searchLocationInputText
+    );
+    if (successRequest) {
+    } else {
+      alert('Wrong location');
+    }
+  }
+});
+
 var navigateFromCityCardToGraphButtons = document.querySelectorAll(
   '.main-locations-city-cards-div-chevron-right'
 );
 
-var navigateBetweenDaysInAirQualityGraph = document.querySelectorAll(
+var navigateBetweenDaysInGaugeGraph = document.querySelectorAll<HTMLElement>(
   '.main-dashboard-title-city-charts-item-days-line-specific'
 );
 
@@ -14,12 +33,12 @@ var chartDom1 = document.querySelectorAll<HTMLElement>(
 )[0];
 
 var chartDom2 = document.querySelectorAll<HTMLElement>(
-  '.main-dashboard-title-city-charts-item-content'
-)[1];
-
-var chartDom3 = document.querySelectorAll<HTMLElement>(
   '.main-dashboard-title-city-charts-item-days-content'
 )[0];
+
+var chartDom3 = document.querySelectorAll<HTMLElement>(
+  '.main-dashboard-title-city-charts-item-content'
+)[1];
 
 var myChart = echarts.init(chartDom1);
 var myChart2 = echarts.init(chartDom2);
@@ -27,25 +46,36 @@ var myChart3 = echarts.init(chartDom3);
 
 for (let i = 0; i < navigateFromCityCardToGraphButtons.length; i++) {
   navigateFromCityCardToGraphButtons[i].addEventListener('click', () => {
-    getWeatherInfoAndMakeHourlyTemperatureGraph(i);
-    getWeatherInfoAndMakeMaximumTemperatureGraph(i);
-    getWeatherInfoAndMakeAirQualityGraph(i);
+    var selectedCity: string;
+    if (i == 0) {
+      selectedCity = cities[0];
+    } else if (i == 1) {
+      selectedCity = cities[1];
+    }
+
+    getWeatherInfoAndMakeHourlyTemperatureGraph(selectedCity);
+    getWeatherInfoAndMakeMaximumTemperatureGraph(selectedCity, 0);
+    getWeatherInfoAndMakeAirQualityGraph(selectedCity);
+
+    for (let i = 0; i < navigateBetweenDaysInGaugeGraph.length; i++) {
+      navigateBetweenDaysInGaugeGraph[i].addEventListener('click', () => {
+        getWeatherInfoAndMakeMaximumTemperatureGraph(selectedCity, i);
+      });
+    }
   });
 }
 
-for (let i = 0; i < navigateBetweenDaysInAirQualityGraph.length; i++) {
-  navigateBetweenDaysInAirQualityGraph[i].addEventListener('click', () => {
-    getWeatherInfoAndMakeAirQualityGraph(i);
-  });
-}
+var navigateBetweenDaysInGaugeGraphLine =
+  document.querySelectorAll<HTMLElement>(
+    '.main-dashboard-title-city-charts-item-days-line'
+  );
 
-function getWeatherInfoAndMakeHourlyTemperatureGraph(index: number) {
-  var selectedCity: string;
-  if (index == 0) {
-    selectedCity = 'Thessaloniki';
-  } else if (index == 1) {
-    selectedCity = 'Athens';
-  }
+navigateBetweenDaysInGaugeGraphLine[0].style.visibility = 'hidden';
+
+function getWeatherInfoAndMakeHourlyTemperatureGraph(
+  selectedCity: string
+): boolean {
+  var successRequest: boolean = true;
 
   var date = new Date();
 
@@ -61,6 +91,71 @@ function getWeatherInfoAndMakeHourlyTemperatureGraph(index: number) {
     .then((result) => result.json())
     .then((response) => {
       console.log(response);
+
+      if (!cities.includes(selectedCity)) {
+        cities.push(response['location']['name']);
+        var newDivCard = document.createElement('div');
+        newDivCard.className = 'main-locations-city-cards';
+
+        var newDivImgCard = document.createElement('div');
+        newDivImgCard.className = 'main-locations-city-cards-div-img';
+
+        var newImgCard = document.createElement('img');
+        newImgCard.setAttribute(
+          'src',
+          response['forecast']['forecastday']['0']['day']['condition']['icon']
+        );
+        newImgCard.style.height = '36px';
+        newImgCard.style.width = '36px';
+
+        newDivImgCard.appendChild(newImgCard);
+
+        var newDivTextCard = document.createElement('div');
+        newDivTextCard.className = 'main-locations-city-cards-text';
+
+        var newDivTextTemperatureCard = document.createElement('div');
+        newDivTextTemperatureCard.className =
+          'main-locations-city-cards-temperature';
+        newDivTextTemperatureCard.innerHTML =
+          Math.ceil(
+            response['forecast']['forecastday']['0']['day']['maxtemp_c']
+          ) +
+          'oC' +
+          Math.ceil(
+            response['forecast']['forecastday']['0']['day']['mintemp_c']
+          ) +
+          'oC';
+        var newDivTextDividerCard = document.createElement('div');
+        newDivTextDividerCard.className = 'main-locations-city-cards-divider';
+        newDivTextDividerCard.innerHTML = '|';
+        var newDivTextCityCard = document.createElement('div');
+        newDivTextCityCard.className = 'main-locations-city-cards-city';
+        newDivTextCityCard.innerHTML = response['location']['name'];
+
+        newDivTextCard.appendChild(newDivTextTemperatureCard);
+        newDivTextCard.appendChild(newDivTextDividerCard);
+        newDivTextCard.appendChild(newDivTextCityCard);
+
+        var newDivImgChevronRight = document.createElement('div');
+        newDivImgChevronRight.className =
+          'main-locations-city-cards-div-chevron-right';
+
+        var newImgChevronRight = document.createElement('img');
+        newImgChevronRight.setAttribute(
+          'src',
+          'https://raw.githubusercontent.com/pgiannou/training-Task1/80d2a1527093cecf55fcf6deabf0aba675df2538/chevron-right.svg'
+        );
+        newDivImgChevronRight.appendChild(newImgChevronRight);
+
+        newDivCard.appendChild(newDivImgCard);
+        newDivCard.appendChild(newDivTextCard);
+        newDivCard.appendChild(newDivImgChevronRight);
+
+        var finalDiv = document.querySelectorAll(
+          '.main-locations-city-cards-group'
+        )[0];
+        finalDiv.appendChild(newDivCard);
+      }
 
       var dashboardTitle = document.querySelectorAll(
         '.main-dashboard-title-text'
@@ -104,163 +199,185 @@ function getWeatherInfoAndMakeHourlyTemperatureGraph(index: number) {
       };
 
       option && myChart.setOption(option, true);
+      successRequest = true;
     })
-    .catch((error) => console.log(error));
-}
-
-function getWeatherInfoAndMakeMaximumTemperatureGraph(index: number) {
-  var selectedCity: string;
-  if (index == 0) {
-    selectedCity = 'Thessaloniki';
-  } else if (index == 1) {
-    selectedCity = 'Athens';
-  }
-
-  var date = new Date();
-
-  date.setDate(date.getDate() - 1);
-
-  let url =
-    'https://api.weatherapi.com/v1/history.json?key=c2c6271001c643d6a4390320231007&q=' +
-    selectedCity +
-    '&dt=' +
-    date.toLocaleDateString('en-GB').split('/').reverse().join('-');
-
-  fetch(url, { method: 'GET' })
-    .then((result) => result.json())
-    .then((response) => {
-      console.log(response);
-
-      var option2;
-
-      option2 = {
-        series: [
-          {
-            type: 'gauge',
-            center: ['50%', '60%'],
-            startAngle: 200,
-            endAngle: -20,
-            min: 0,
-            max: 60,
-            splitNumber: 12,
-            itemStyle: {
-              color: '#FFAB91',
-            },
-            progress: {
-              show: true,
-              width: 15,
-            },
-            pointer: {
-              show: false,
-            },
-            axisLine: {
-              lineStyle: {
-                width: 10,
-              },
-            },
-            axisTick: {
-              distance: -45,
-              splitNumber: 5,
-              lineStyle: {
-                width: 2,
-                color: '#999',
-              },
-            },
-            splitLine: {
-              distance: -52,
-              length: 14,
-              lineStyle: {
-                width: 3,
-                color: '#999',
-              },
-            },
-            axisLabel: {
-              distance: -20,
-              color: '#999',
-              fontSize: 20,
-            },
-            anchor: {
-              show: false,
-            },
-            title: {
-              show: false,
-            },
-            detail: {
-              valueAnimation: true,
-              width: '60%',
-              lineHeight: 40,
-              borderRadius: 8,
-              offsetCenter: [0, '-15%'],
-              fontSize: 60,
-              fontWeight: 'bolder',
-              formatter: '{value} °C',
-              color: 'inherit',
-            },
-            data: [
-              {
-                value:
-                  response['forecast']['forecastday']['0']['day']['maxtemp_c'],
-              },
-            ],
-          },
-          {
-            type: 'gauge',
-            center: ['50%', '60%'],
-            startAngle: 200,
-            endAngle: -20,
-            min: 0,
-            max: 60,
-            itemStyle: {
-              color: '#FD7347',
-            },
-            progress: {
-              show: true,
-              width: 8,
-            },
-            pointer: {
-              show: false,
-            },
-            axisLine: {
-              show: false,
-            },
-            axisTick: {
-              show: false,
-            },
-            splitLine: {
-              show: false,
-            },
-            axisLabel: {
-              show: false,
-            },
-            detail: {
-              show: false,
-            },
-            data: [
-              {
-                value:
-                  response['forecast']['forecastday']['0']['day']['maxtemp_c'],
-              },
-            ],
-          },
-        ],
-      };
-
-      option2 && myChart2.setOption(option2, true);
+    .catch((error) => {
+      successRequest = false;
     });
+
+  return successRequest;
 }
 
-function getWeatherInfoAndMakeAirQualityGraph(index: number) {
-  var selectedCity: string;
-  if (index == 0) {
-    selectedCity = 'Thessaloniki';
-  } else if (index == 1) {
-    selectedCity = 'Athens';
+function getWeatherInfoAndMakeMaximumTemperatureGraph(
+  selectedCity: string,
+  selectedDay: number
+) {
+  navigateBetweenDaysInGaugeGraphLine[0].style.visibility = 'visible';
+
+  if (selectedDay == 0) {
+    navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '2px solid blue';
+    navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
+    navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
+
+    var date = new Date();
+
+    date.setDate(date.getDate() - 1);
+
+    let url =
+      'https://api.weatherapi.com/v1/history.json?key=c2c6271001c643d6a4390320231007&q=' +
+      selectedCity +
+      '&dt=' +
+      date.toLocaleDateString('en-GB').split('/').reverse().join('-');
+
+    fetch(url, { method: 'GET' })
+      .then((result) => result.json())
+      .then((response) => {
+        console.log(response);
+
+        var option2;
+
+        option2 = {
+          series: [
+            {
+              type: 'gauge',
+              progress: {
+                show: true,
+                width: 18,
+              },
+              axisLine: {
+                lineStyle: {
+                  width: 18,
+                },
+              },
+              axisTick: {
+                show: false,
+              },
+              splitLine: {
+                length: 15,
+                lineStyle: {
+                  width: 2,
+                  color: '#999',
+                },
+              },
+              axisLabel: {
+                distance: 25,
+                color: '#999',
+                fontSize: 20,
+              },
+              anchor: {
+                show: true,
+                showAbove: true,
+                size: 25,
+                itemStyle: {
+                  borderWidth: 10,
+                },
+              },
+              title: {
+                show: false,
+              },
+              detail: {
+                valueAnimation: true,
+                fontSize: 80,
+                offsetCenter: [0, '70%'],
+              },
+              data: [
+                {
+                  value:
+                    response['forecast']['forecastday'][selectedDay + ''][
+                      'day'
+                    ]['maxtemp_c'],
+                },
+              ],
+            },
+          ],
+        };
+
+        option2 && myChart2.setOption(option2, true);
+      });
+  } else {
+    if (selectedDay == 1) {
+      navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
+      navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '2px solid blue';
+      navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
+    } else if (selectedDay == 2) {
+      navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
+      navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '2px solid blue';
+      navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
+    }
+    let url =
+      'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
+      selectedCity +
+      '&days=2&aqi=yes&alerts=no';
+
+    fetch(url, { method: 'GET' })
+      .then((result) => result.json())
+      .then((response) => {
+        //console.log(response);
+
+        var option2;
+
+        option2 = {
+          series: [
+            {
+              type: 'gauge',
+              progress: {
+                show: true,
+                width: 18,
+              },
+              axisLine: {
+                lineStyle: {
+                  width: 18,
+                },
+              },
+              axisTick: {
+                show: false,
+              },
+              splitLine: {
+                length: 15,
+                lineStyle: {
+                  width: 2,
+                  color: '#999',
+                },
+              },
+              axisLabel: {
+                distance: 25,
+                color: '#999',
+                fontSize: 20,
+              },
+              anchor: {
+                show: true,
+                showAbove: true,
+                size: 25,
+                itemStyle: {
+                  borderWidth: 10,
+                },
+              },
+              title: {
+                show: false,
+              },
+              detail: {
+                valueAnimation: true,
+                fontSize: 80,
+                offsetCenter: [0, '70%'],
+              },
+              data: [
+                {
+                  value:
+                    response['forecast']['forecastday'][selectedDay - 1 + ''][
+                      'day'
+                    ]['maxtemp_c'],
+                },
+              ],
+            },
+          ],
+        };
+
+        option2 && myChart2.setOption(option2, true);
+      });
   }
+}
 
-  var date = new Date();
-
-  date.setDate(date.getDate() - 1);
-
+function getWeatherInfoAndMakeAirQualityGraph(selectedCity: string) {
   let url =
     'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
     selectedCity +
@@ -269,7 +386,7 @@ function getWeatherInfoAndMakeAirQualityGraph(index: number) {
   fetch(url, { method: 'GET' })
     .then((result) => result.json())
     .then((response) => {
-      console.log(response);
+      //console.log(response);
 
       var option3;
 
@@ -282,7 +399,7 @@ function getWeatherInfoAndMakeAirQualityGraph(index: number) {
           },
         },
         legend: {
-          data: ['Allocated Budget', 'Actual Spending'],
+          data: ['Today', 'Tomorrow'],
           textStyle: {
             fontSize: '8',
           },
@@ -296,14 +413,6 @@ function getWeatherInfoAndMakeAirQualityGraph(index: number) {
             { name: 'so2', max: 10 },
             { name: 'pm2_5', max: 30 },
             { name: 'pm10', max: 30 },
-            {
-              name: 'us-epa-index',
-              max: 10,
-            },
-            {
-              name: 'gb-defra-index',
-              max: 10,
-            },
           ],
         },
         series: [
@@ -319,23 +428,31 @@ function getWeatherInfoAndMakeAirQualityGraph(index: number) {
                   response['current']['air_quality']['so2'],
                   response['current']['air_quality']['pm2_5'],
                   response['current']['air_quality']['pm10'],
-                  response['current']['air_quality']['us-epa-index'],
-                  response['current']['air_quality']['gb-defra-index'],
                 ],
-                name: 'Allocated Budget',
+                name: 'Today',
               },
               {
                 value: [
-                  response['current']['air_quality']['co'],
-                  response['current']['air_quality']['no2'],
-                  response['current']['air_quality']['o3'],
-                  response['current']['air_quality']['so2'],
-                  response['current']['air_quality']['pm2_5'],
-                  response['current']['air_quality']['pm10'],
-                  response['current']['air_quality']['us-epa-index'],
-                  response['current']['air_quality']['gb-defra-index'],
+                  response['forecast']['forecastday']['0']['day'][
+                    'air_quality'
+                  ]['co'],
+                  response['forecast']['forecastday']['0']['day'][
+                    'air_quality'
+                  ]['no2'],
+                  response['forecast']['forecastday']['0']['day'][
+                    'air_quality'
+                  ]['o3'],
+                  response['forecast']['forecastday']['0']['day'][
+                    'air_quality'
+                  ]['so2'],
+                  response['forecast']['forecastday']['0']['day'][
+                    'air_quality'
+                  ]['pm2_5'],
+                  response['forecast']['forecastday']['0']['day'][
+                    'air_quality'
+                  ]['pm10'],
                 ],
-                name: 'Actual Spending',
+                name: 'Tomorrow',
               },
             ],
           },
