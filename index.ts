@@ -98,7 +98,7 @@ searchLocationInput.addEventListener('keypress', (event) => {
             );
             getWeatherInfoAndMakeMaximumTemperatureGraph(
               cities[cities.length - 1],
-              0
+              1
             );
             getWeatherInfoAndMakeAirQualityGraph(cities[cities.length - 1]);
 
@@ -125,18 +125,6 @@ searchLocationInput.addEventListener('keypress', (event) => {
           finalDiv.appendChild(newDivCard);
         }
       });
-    getWeatherInfoAndMakeHourlyTemperatureGraph(searchLocationInputText);
-    getWeatherInfoAndMakeMaximumTemperatureGraph(searchLocationInputText, 0);
-    getWeatherInfoAndMakeAirQualityGraph(searchLocationInputText);
-
-    for (let i = 0; i < navigateBetweenDaysInGaugeGraph.length; i++) {
-      navigateBetweenDaysInGaugeGraph[i].addEventListener('click', () => {
-        getWeatherInfoAndMakeMaximumTemperatureGraph(
-          searchLocationInputText,
-          i
-        );
-      });
-    }
   }
 });
 
@@ -167,11 +155,11 @@ var myChart3 = echarts.init(chartDom3);
 for (let i = 0; i < navigateFromCityCardToGraphButtons.length; i++) {
   navigateFromCityCardToGraphButtons[i].addEventListener('click', () => {
     getWeatherInfoAndMakeHourlyTemperatureGraph(cities[i]);
-    getWeatherInfoAndMakeMaximumTemperatureGraph(cities[i], 0);
+    getWeatherInfoAndMakeMaximumTemperatureGraph(cities[i], 1);
     getWeatherInfoAndMakeAirQualityGraph(cities[i]);
 
     for (let j = 0; j < navigateBetweenDaysInGaugeGraph.length; j++) {
-      navigateBetweenDaysInGaugeGraph[i].addEventListener('click', () => {
+      navigateBetweenDaysInGaugeGraph[j].addEventListener('click', () => {
         getWeatherInfoAndMakeMaximumTemperatureGraph(cities[i], j);
       });
     }
@@ -196,6 +184,13 @@ function callAPIForInitCards() {
       .then((result) => result.json())
       .then((response) => {
         console.log(response);
+
+        document
+          .querySelectorAll('.main-locations-city-cards-div-img-specific')
+          [i].setAttribute(
+            'src',
+            response['forecast']['forecastday']['0']['day']['condition']['icon']
+          );
 
         document.querySelectorAll('.main-locations-city-cards-temperature')[
           i
@@ -278,11 +273,11 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(
   navigateBetweenDaysInGaugeGraphLine[0].style.visibility = 'visible';
 
   if (selectedDay == 0) {
-      navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
-      navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '2px solid blue';
-      navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
+    navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
+    navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '2px solid blue';
+    navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
 
-      var date = new Date();
+    var date = new Date();
 
     date.setDate(date.getDate() - 1);
 
@@ -357,128 +352,125 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(
 
         option2 && myChart2.setOption(option2, true);
       });
-    } else {
-      if (selectedDay == 1) {
-        navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '2px solid blue';
-        navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
-        navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
-    
-        
-      } else if (selectedDay == 2) {
-        navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
-        navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '2px solid blue';
-        navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
-      }
+  } else {
+    if (selectedDay == 1) {
+      navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '2px solid blue';
+      navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
+      navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '0px';
+    } else if (selectedDay == 2) {
+      navigateBetweenDaysInGaugeGraph[0].style.borderBottom = '0px';
+      navigateBetweenDaysInGaugeGraph[2].style.borderBottom = '2px solid blue';
+      navigateBetweenDaysInGaugeGraph[1].style.borderBottom = '0px';
     }
-    let url =
-      'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
-      selectedCity +
-      '&days=2&aqi=yes&alerts=no';
+  }
+  let url =
+    'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
+    selectedCity +
+    '&days=2&aqi=yes&alerts=no';
 
-    fetch(url, { method: 'GET' })
-      .then((result) => result.json())
-      .then((response) => {
-        console.log(response);
+  fetch(url, { method: 'GET' })
+    .then((result) => result.json())
+    .then((response) => {
+      console.log(response);
 
-        var dashboardTitle = document.querySelectorAll(
-          '.main-dashboard-title-text'
-        )[0];
-        dashboardTitle.innerHTML =
-          response['location']['name'] +
-          ', ' +
-          response['location']['region'] +
-          ', ' +
-          response['location']['tz_id'];
+      var dashboardTitle = document.querySelectorAll(
+        '.main-dashboard-title-text'
+      )[0];
+      dashboardTitle.innerHTML =
+        response['location']['name'] +
+        ', ' +
+        response['location']['region'] +
+        ', ' +
+        response['location']['tz_id'];
 
-        var dateNow = new Date();
-        document.querySelectorAll(
-          '.main-dashboard-title-charts-top-title-content-left-temperature'
-        )[0].innerHTML =
-          response['forecast']['forecastday']['0']['hour'][dateNow.getHours()][
-            'temp_c'
-          ];
-        document.querySelectorAll(
-          '.main-dashboard-title-charts-top-title-content-left-details'
-        )[0].innerHTML =
-          'Day ' +
-          Math.ceil(
-            response['forecast']['forecastday']['0']['day']['maxtemp_c']
-          ) +
-          'oC - Night ' +
-          Math.ceil(
-            response['forecast']['forecastday']['0']['day']['mintemp_c']
-          ) +
-          'oC';
-        document
-          .querySelectorAll(
-            '.main-dashboard-title-charts-top-title-content-right-img'
-          )[0]
-          .setAttribute(
-            'src',
-            response['forecast']['forecastday']['0']['day']['condition']['icon']
-          );
+      var dateNow = new Date();
+      document.querySelectorAll(
+        '.main-dashboard-title-charts-top-title-content-left-temperature'
+      )[0].innerHTML =
+        response['forecast']['forecastday']['0']['hour'][dateNow.getHours()][
+          'temp_c'
+        ];
+      document.querySelectorAll(
+        '.main-dashboard-title-charts-top-title-content-left-details'
+      )[0].innerHTML =
+        'Day ' +
+        Math.ceil(
+          response['forecast']['forecastday']['0']['day']['maxtemp_c']
+        ) +
+        'oC - Night ' +
+        Math.ceil(
+          response['forecast']['forecastday']['0']['day']['mintemp_c']
+        ) +
+        'oC';
+      document
+        .querySelectorAll(
+          '.main-dashboard-title-charts-top-title-content-right-img'
+        )[0]
+        .setAttribute(
+          'src',
+          response['forecast']['forecastday']['0']['day']['condition']['icon']
+        );
 
-        var option2;
+      var option2;
 
-        option2 = {
-          series: [
-            {
-              type: 'gauge',
-              progress: {
-                show: true,
+      option2 = {
+        series: [
+          {
+            type: 'gauge',
+            progress: {
+              show: true,
+              width: 18,
+            },
+            axisLine: {
+              lineStyle: {
                 width: 18,
               },
-              axisLine: {
-                lineStyle: {
-                  width: 18,
-                },
-              },
-              axisTick: {
-                show: false,
-              },
-              splitLine: {
-                length: 15,
-                lineStyle: {
-                  width: 2,
-                  color: '#999',
-                },
-              },
-              axisLabel: {
-                distance: 25,
-                color: '#999',
-                fontSize: 20,
-              },
-              anchor: {
-                show: true,
-                showAbove: true,
-                size: 25,
-                itemStyle: {
-                  borderWidth: 10,
-                },
-              },
-              title: {
-                show: false,
-              },
-              detail: {
-                valueAnimation: true,
-                fontSize: 80,
-                offsetCenter: [0, '70%'],
-              },
-              data: [
-                {
-                  value:
-                    response['forecast']['forecastday'][selectedDay - 1 + ''][
-                      'day'
-                    ]['maxtemp_c'],
-                },
-              ],
             },
-          ],
-        };
+            axisTick: {
+              show: false,
+            },
+            splitLine: {
+              length: 15,
+              lineStyle: {
+                width: 2,
+                color: '#999',
+              },
+            },
+            axisLabel: {
+              distance: 25,
+              color: '#999',
+              fontSize: 20,
+            },
+            anchor: {
+              show: true,
+              showAbove: true,
+              size: 25,
+              itemStyle: {
+                borderWidth: 10,
+              },
+            },
+            title: {
+              show: false,
+            },
+            detail: {
+              valueAnimation: true,
+              fontSize: 80,
+              offsetCenter: [0, '70%'],
+            },
+            data: [
+              {
+                value:
+                  response['forecast']['forecastday'][selectedDay - 1 + ''][
+                    'day'
+                  ]['maxtemp_c'],
+              },
+            ],
+          },
+        ],
+      };
 
-        option2 && myChart2.setOption(option2, true);
-      });
-  }
+      option2 && myChart2.setOption(option2, true);
+    });
 }
 
 function getWeatherInfoAndMakeAirQualityGraph(selectedCity: string) {
