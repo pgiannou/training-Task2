@@ -281,6 +281,8 @@ body {
       border-radius: 80px;
       border: 1px solid var(--primary-palette-neutral-400, #cbd2e1);
       background: var(--primary-palette-neutral-0, #fff);
+
+      cursor: pointer;
     }
 
     &-charts {

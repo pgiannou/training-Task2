@@ -1,30 +1,76 @@
 import './style.scss';
 import * as echarts from 'echarts';
 
-var cities: string[] = ['Thessaloniki', 'Athens'];
+class CityCard {
+  cities: string[];
 
-callAPIForInitCards();
+  constructor() {
+    this.cities = ['Thessaloniki', 'Athens'];
+    this.callAPIForInitCards();
+  }
 
-document.querySelectorAll(
-  '.main-dashboard-title-charts-top-title-content-left-temperature'
-)[0].innerHTML = '';
-document.querySelectorAll(
-  '.main-dashboard-title-charts-top-title-content-left-details'
-)[0].innerHTML = '';
-document
-  .querySelectorAll(
-    '.main-dashboard-title-charts-top-title-content-right-img'
-  )[0]
-  .setAttribute('src', '');
+  callAPIForInitCards() {
+    for (let i = 0; i < this.cities.length; i++) {
+      let url =
+        'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
+        this.cities[i] +
+        '&days=1&aqi=no&alerts=no';
+
+      fetch(url, { method: 'GET' })
+        .then((result) => result.json()) 
+        .then((response) => {
+          console.log(response);
+
+          document
+            .querySelectorAll('.main-locations-city-cards-div-img-specific')
+            [i].setAttribute(
+              'src',
+              response['forecast']['forecastday']['0']['day']['condition'][
+                'icon'
+              ]
+            );
+
+          document.querySelectorAll('.main-locations-city-cards-temperature')[
+            i
+          ].innerHTML =
+            Math.ceil(
+              response['forecast']['forecastday']['0']['day']['maxtemp_c']
+            ) +
+            'oC - ' +
+            Math.ceil(
+              response['forecast']['forecastday']['0']['day']['mintemp_c']
+            ) +
+            'oC';
+
+          document.querySelectorAll('.main-locations-city-cards-city')[
+            i
+          ].innerHTML = response['location']['name'];
+        });
+    }
+  }
+}
+
+var cityCard: CityCard = new CityCard();
+
+class HourlyGraph {
+  constructor() {}
+}
+
+class MaximumTemperatureGraph {
+  constructor() {}
+}
+
+class AirQualityGraph {
+  constructor() {}
+}
 
 var searchLocationInput = document.querySelector<HTMLInputElement>(
   '#searchLocationInput'
 );
 
-searchLocationInput.addEventListener('keypress', (event) => {
-  if (event.key === 'Enter') {
-    var successRequest: boolean = true;
-
+document
+  .querySelectorAll('.main-dashboard-title-heart-icon')[0]
+  .addEventListener('click', () => {
     var searchLocationInputText = searchLocationInput.value;
 
     let url =
@@ -125,6 +171,17 @@ searchLocationInput.addEventListener('keypress', (event) => {
           finalDiv.appendChild(newDivCard);
         }
       });
+  });
+
+searchLocationInput.addEventListener('keypress', (event) => {
+  if (event.key === 'Enter') {
+    var successRequest: boolean = true;
+
+    var searchLocationInputText = searchLocationInput.value;
+
+    getWeatherInfoAndMakeHourlyTemperatureGraph(searchLocationInputText);
+    getWeatherInfoAndMakeMaximumTemperatureGraph(searchLocationInputText, 1);
+    getWeatherInfoAndMakeAirQualityGraph(searchLocationInputText);
   }
 });
 
@@ -172,44 +229,6 @@ var navigateBetweenDaysInGaugeGraphLine =
   );
 
 navigateBetweenDaysInGaugeGraphLine[0].style.visibility = 'hidden';
-
-function callAPIForInitCards() {
-  for (let i = 0; i < cities.length; i++) {
-    let url =
-      'https://api.weatherapi.com/v1/forecast.json?key=c2c6271001c643d6a4390320231007&q=' +
-      cities[i] +
-      '&days=1&aqi=yes&alerts=no';
-
-    fetch(url, { method: 'GET' })
-      .then((result) => result.json())
-      .then((response) => {
-        console.log(response);
-
-        document
-          .querySelectorAll('.main-locations-city-cards-div-img-specific')
-          [i].setAttribute(
-            'src',
-            response['forecast']['forecastday']['0']['day']['condition']['icon']
-          );
-
-        document.querySelectorAll('.main-locations-city-cards-temperature')[
-          i
-        ].innerHTML =
-          Math.ceil(
-            response['forecast']['forecastday']['0']['day']['maxtemp_c']
-          ) +
-          'oC - ' +
-          Math.ceil(
-            response['forecast']['forecastday']['0']['day']['mintemp_c']
-          ) +
-          'oC';
-
-        document.querySelectorAll('.main-locations-city-cards-city')[
-          i
-        ].innerHTML = response['location']['name'];
-      });
-  }
-}
 
 function getWeatherInfoAndMakeHourlyTemperatureGraph(selectedCity: string) {
   var date = new Date();
