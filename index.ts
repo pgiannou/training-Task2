@@ -23,8 +23,6 @@ function makeGraphsForSearchText() {
   fetch(url, { method: 'GET' })
     .then((result) => result.json())
     .then((response) => {
-      //console.log(response);
-
       if (!cities.includes(searchLocationInputText)) {
         getWeatherInfoAndMakeHourlyTemperatureGraph(cities[cities.length - 1]);
         getWeatherInfoAndMakeMaximumTemperatureGraph(
@@ -74,7 +72,6 @@ function makeGraphs(i: number) {
 
   for (var j = 0; j < navigateBetweenDaysInGaugeGraph.length; j++) {
     navigateBetweenDaysInGaugeGraph[j].addEventListener('click', () => {
-      //console.log();
       getWeatherInfoAndMakeMaximumTemperatureGraph(cities[i], j);
     });
   }
@@ -121,8 +118,6 @@ function callAPIForInitCards() {
     fetch(url, { method: 'GET' })
       .then((result) => result.json())
       .then((response) => {
-        //console.log(response);
-
         document
           .querySelectorAll('.main-locations-city-cards-div-img-specific')
           [i].setAttribute(
@@ -235,8 +230,6 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(
     fetch(url, { method: 'GET' })
       .then((result) => result.json())
       .then((response) => {
-        //console.log(response);
-
         options.makeMaxTemperatureGraph(response, selectedDay);
       });
   } else {
@@ -259,8 +252,6 @@ function getWeatherInfoAndMakeMaximumTemperatureGraph(
     fetch(url, { method: 'GET' })
       .then((result) => result.json())
       .then((response) => {
-        //console.log(response);
-
         options.makeMaxTemperatureGraph(response, selectedDay);
 
         initDashboardInfo(response);
