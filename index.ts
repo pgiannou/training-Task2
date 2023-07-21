@@ -1,5 +1,4 @@
 import './style.scss';
-import * as echarts from 'echarts';
 import { apiKey } from './credentials';
 import * as options from './options';
 
@@ -131,11 +130,11 @@ function callAPIForInitCards() {
           Math.ceil(
             response['forecast']['forecastday']['0']['day']['maxtemp_c']
           ) +
-          'oC - ' +
+          '<sup>o</sup>C - ' +
           Math.ceil(
             response['forecast']['forecastday']['0']['day']['mintemp_c']
           ) +
-          'oC';
+          '<sup>o</sup>C';
 
         document.querySelectorAll('.main-locations-city-cards-city')[
           i
@@ -167,9 +166,9 @@ function initDashboardInfo(response) {
   )[0].innerHTML =
     'Day ' +
     Math.ceil(response['forecast']['forecastday']['0']['day']['maxtemp_c']) +
-    'oC - Night ' +
+    '<sup>o</sup>C - Night ' +
     Math.ceil(response['forecast']['forecastday']['0']['day']['mintemp_c']) +
-    'oC';
+    '<sup>o</sup>C';
   document
     .querySelectorAll(
       '.main-dashboard-title-charts-top-title-content-right-img'

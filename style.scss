@@ -118,12 +118,13 @@ body {
       border-radius: 4px;
       padding-left: 40px;
       padding-right: 40px;
+      padding-bottom: 4px;
     }
 
     &-icon {
       position: absolute;
       left: 14px;
-      top: 10px;
+      top: 6px;
 
       &:hover {
         cursor: pointer;
@@ -133,7 +134,7 @@ body {
     &-close {
       position: absolute;
       right: 14px;
-      top: 10px;
+      top: 6px;
 
       &:hover {
         cursor: pointer;
@@ -169,11 +170,14 @@ body {
     padding-top: 16px;
     flex-direction: column;
     gap: 16px;
+    // REVIEW: Making sure the width is correct.
+    width: 380px;
   }
 
   &-locations-city-cards {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    height: 72px;
     border-radius: 4px;
     border: 1px solid #e1e6ef;
     background: #fff;
@@ -214,7 +218,7 @@ body {
     &-div-chevron-right {
       position: absolute;
       right: 16px;
-      top: 16px;
+      top: 20px;
       margin-left: 5px;
       cursor: pointer;
     }
@@ -238,12 +242,12 @@ body {
     }
   }
 
-  @media only screen and (max-width: 700px) {
+  @media only screen and (max-width: 922px) {
     flex-direction: column;
     align-items: center;
   }
 
-  @media only screen and (max-width: 400px) {
+  @media only screen and (max-width: 470px) {
     display: none;
   }
 }
@@ -256,7 +260,7 @@ body {
 
   &-title {
     display: flex;
-    padding: 0px 8px 4px 8px;
+    padding: 0px 24px 4px 24px;
     align-items: center;
     margin-bottom: 8px;
     align-self: stretch;
@@ -297,12 +301,19 @@ body {
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      flex: 1 0 0;
-      align-self: stretch;
-      background-image: url(https://gl.fromscratch.gr/fromscratch-studio/onboarding/uploads/4568f7c81df3f7365e0759b6de9faaf4/image.png);
+      //flex: 1 0 0;
+      //align-self: stretch;
+      // background-image: url(https://gl.fromscratch.gr/fromscratch-studio/onboarding/uploads/4568f7c81df3f7365e0759b6de9faaf4/image.png);
       padding: 24px;
-      margin-bottom: 48px;
+      //margin-bottom: 48px;
       border-radius: 4px;
+
+      &-background-img {
+        display: flex;
+        align-self: stretch;
+        flex: 1 0 0;
+        width: 380px;
+      }
 
       &-left {
         display: flex;
@@ -350,6 +361,10 @@ body {
   }
 
   &-title-city-charts {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    padding: 24px;
     &-item {
       display: flex;
       flex-direction: column;
@@ -480,7 +495,7 @@ body {
     background: #0a0d14;
   }
 
-  @media only screen and (max-width: 1000px) {
+  @media only screen and (max-width: 922px) {
     padding: 24px;
     flex-direction: column;
     height: auto;
@@ -518,7 +533,7 @@ body {
   }
 }
 
-@media only screen and (max-width: 400px) {
+@media only screen and (max-width: 470px) {
   .body {
     display: none;
   }
