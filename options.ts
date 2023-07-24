@@ -41,7 +41,7 @@ export function makeHourlyTemperatureGraph(response) {
 }
 
 export function makeMaxTemperatureGraph(response, selectedDay) {
-  var chartDom2 = document.querySelectorAll<HTMLElement>(
+  const chartDom2 = document.querySelectorAll<HTMLElement>(
     '.main-dashboard-title-city-charts-item-days-content'
   )[0];
 
@@ -99,9 +99,11 @@ export function makeMaxTemperatureGraph(response, selectedDay) {
         data: [
           {
             value:
-              response['forecast']['forecastday'][selectedDay - 1 + '']['day'][
-                'maxtemp_c'
-              ],
+              selectedDay == 0
+                ? response['forecast']['forecastday'][0]['day']['maxtemp_c']
+                : response['forecast']['forecastday'][selectedDay - 1]['day'][
+                    'maxtemp_c'
+                  ],
           },
         ],
       },
@@ -117,6 +119,8 @@ export function makeAirQualityGraph(response) {
   )[1];
 
   var myChart3 = echarts.init(chartDom3);
+
+  console.log(response);
 
   var option3;
 
@@ -137,12 +141,12 @@ export function makeAirQualityGraph(response) {
     radar: {
       // shape: 'circle',
       indicator: [
-        { name: 'co', max: 250 },
-        { name: 'no2', max: 10 },
+        { name: 'co', max: 290 },
+        { name: 'no2', max: 30 },
         { name: 'o3', max: 250 },
-        { name: 'so2', max: 10 },
-        { name: 'pm2_5', max: 30 },
-        { name: 'pm10', max: 30 },
+        { name: 'so2', max: 40 },
+        { name: 'pm2_5', max: 40 },
+        { name: 'pm10', max: 50 },
       ],
     },
     series: [
